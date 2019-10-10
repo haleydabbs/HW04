@@ -147,8 +147,6 @@ void drawImage3(int col, int row, int width, int height, const unsigned short *i
 // Draw an image at the specified location and size in Mode 4 (must be even col and width)
 void drawImage4(int col, int row, int width, int height, const unsigned short *image) {
 
-    // TODO 4.0: Write this function using DMA
-    // add offset for image
     for (int y = 0; y < height; y++) {
         DMANow(3, &image[(OFFSET(0, y, width/2))], &videoBuffer[(OFFSET(col, row + y, SCREENWIDTH)/2)], (width/2));
     }

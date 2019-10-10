@@ -1,10 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "myLib.h"
-#include "text.h"
 #include "game.h"
-// TODO 3.4: Include buzz.h
-#include "buzz.h"
+#include "myLib.h"
+#include "cactiBG.h"
+#include "text.h"
 
 
 // Prototypes
@@ -19,19 +18,14 @@ void goToPause();
 void pause();
 void goToWin();
 void win();
-void goToLose();
-void lose();
 
 // States
-enum {START, GAME, PAUSE, WIN, LOSE};
+enum {START, GAME, PAUSE, WIN};
 int state;
 
 // Button Variables
 unsigned short buttons;
 unsigned short oldButtons;
-
-// Random Seed
-int seed;
 
 // Text Buffer
 char buffer[41];
@@ -42,11 +36,11 @@ int main() {
 
     while(1) {
 
-        // Update button variables
+        // Update buttons
         oldButtons = buttons;
         buttons = BUTTONS;
 
-        // State Machine
+        // States
         switch(state) {
 
             case START:
@@ -61,58 +55,48 @@ int main() {
             case WIN:
                 win();
                 break;
-            case LOSE:
-                lose();
-                break;
         }
 
     }
 }
 
-// Sets up GBA
+// Initialize GBA
 void initialize() {
 
     REG_DISPCTL = MODE4 | BG2_ENABLE | DISP_BACKBUFFER;
 
-    // Set up the first state
     goToStart();
 }
 
 // Sets up the start state
 void goToStart() {
 
-    //TODO 3.5: Call DMANow to load in buzzPal
-    DMANow(3, buzzPal, PALETTE, (256 | DMA_DESTINATION_INCREMENT | DMA_SOURCE_INCREMENT));
+    // Setting up title screen
+    DMANow(3, cactiBGPal, PALETTE, (256 | DMA_DESTINATION_INCREMENT | DMA_SOURCE_INCREMENT));
+    drawFullscreenImage4(cactiBGBitmap);
 
-    // UNCOMMENT 3.0
-    drawFullscreenImage4(buzzBitmap);
+    // width 84
+    drawRect4(76, 74, 88, 12, 0);
+    sprintf(buffer, "Feed the plant");
+    drawString4(78, 76, buffer, 39);
 
-    //TODO 2.1: Wait for vertical blank and flip the page (you don't need to reload the palette)
     waitForVBlank();
     flipPage();
-
     state = START;
 
-    // Begin the seed randomization
-    seed = 0;
 }
 
 // Runs every frame of the start state
 void start() {
 
-    seed++;
-
-    // Lock the framerate to 60 fps
     waitForVBlank();
 
-    // State transitions
+    // When start button pressed, start the game
     if (BUTTON_PRESSED(BUTTON_START)) {
 
-        // Seed the random generator
-        srand(seed);
-
-        goToGame();
         initGame();
+        goToGame();
+
     }
 }
 
@@ -120,6 +104,7 @@ void start() {
 void goToGame() {
 
     state = GAME;
+
 }
 
 // Runs every frame of the game state
@@ -128,29 +113,28 @@ void game() {
     updateGame();
     drawGame();
 
-    // Update the score
-    sprintf(buffer, "Balls Remaining: %d", ballsRemaining);
-    drawString4(5, 145, buffer, WHITEID);
-
+    sprintf(buffer, "Plant happiness pointz: %d", 0);
+    drawString4(8, 135, buffer, CYANID);
+   
     waitForVBlank();
     flipPage();
 
     // State transitions
     if (BUTTON_PRESSED(BUTTON_START))
         goToPause();
-    else if (ballsRemaining == 0)
-        goToWin();
     else if (BUTTON_PRESSED(BUTTON_B))
-        goToLose();
+        goToWin();
 }
 
 // Sets up the pause state
 void goToPause() {
 
     fillScreen4(GRAYID);
-    drawString4(120-15, 80-3, "Pause", BLACKID);
 
-    //TODO 2.2: Wait for vertical blank and flip the page
+    // width 72
+    sprintf(buffer, "Game paused.");
+    drawString4(84, 66, buffer, BLACKID);
+
     waitForVBlank();
     flipPage();
 
@@ -164,19 +148,20 @@ void pause() {
     waitForVBlank();
 
     // State transitions
-    if (BUTTON_PRESSED(BUTTON_START))
+    if (BUTTON_PRESSED(BUTTON_START)) {
         goToGame();
-    else if (BUTTON_PRESSED(BUTTON_SELECT))
-        goToStart();
+    }
 }
 
 // Sets up the win state
 void goToWin() {
 
-    fillScreen4(GREENID);
-    drawString4(120-9, 80-3, "Win", BLACKID);
+    fillScreen4(CYANID);
 
-    //TODO 2.3: Wait for vertical blank and flip the page
+    // width 48
+    sprintf(buffer, "You win!");
+    drawString4(98, 66, buffer, BLACKID);
+
     waitForVBlank();
     flipPage();
 
@@ -185,30 +170,6 @@ void goToWin() {
 
 // Runs every frame of the win state
 void win() {
-
-    // Lock the framerate to 60 fps
-    waitForVBlank();
-
-    // State transitions
-    if (BUTTON_PRESSED(BUTTON_START))
-        goToStart();
-}
-
-// Sets up the lose state
-void goToLose() {
-
-    fillScreen4(REDID);
-    drawString4(120-12, 80-3, "Lose", BLACKID);
-
-    //TODO 2.4: Wait for vertical blank and flip the page
-    waitForVBlank();
-    flipPage();
-
-    state = LOSE;
-}
-
-// Runs every frame of the lose state
-void lose() {
 
     // Lock the framerate to 60 fps
     waitForVBlank();
