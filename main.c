@@ -23,6 +23,9 @@ void win();
 enum {START, GAME, PAUSE, WIN};
 int state;
 
+// Variables
+int seed;
+
 // Button Variables
 unsigned short buttons;
 unsigned short oldButtons;
@@ -71,17 +74,24 @@ void initialize() {
 // Sets up the start state
 void goToStart() {
 
+    // Initialize rand seed
+    seed = 0;
+
     // Setting up title screen
+    // Drawing title rect
     DMANow(3, cactiBGPal, PALETTE, (256 | DMA_DESTINATION_INCREMENT | DMA_SOURCE_INCREMENT));
     drawFullscreenImage4(cactiBGBitmap);
 
-    // width 84
+    // Drawing title text
     drawRect4(76, 74, 88, 12, 0);
     sprintf(buffer, "Feed the plant");
     drawString4(78, 76, buffer, 39);
 
+    // Waity flippy Mode 4 stuff
     waitForVBlank();
     flipPage();
+
+    // State change
     state = START;
 
 }
@@ -90,10 +100,12 @@ void goToStart() {
 void start() {
 
     waitForVBlank();
+    seed++;
 
     // When start button pressed, start the game
     if (BUTTON_PRESSED(BUTTON_START)) {
 
+        srand(seed);
         initGame();
         goToGame();
 
@@ -113,8 +125,14 @@ void game() {
     updateGame();
     drawGame();
 
-    sprintf(buffer, "Plant happiness pointz: %d", 0);
-    drawString4(8, 135, buffer, CYANID);
+    sprintf(buffer, "H:%d", happinessNeeded);
+    drawString4(8, 135, buffer, MAGENTAID);
+
+    sprintf(buffer, "T:%d", waterNeeded);
+    drawString4(40, 135, buffer, CYANID);
+
+    sprintf(buffer, "N:%d", nutrientNeeded);
+    drawString4(72, 135, buffer, GREENID);
    
     waitForVBlank();
     flipPage();

@@ -7,8 +7,13 @@
 // Variables
 CACTUS cacti[CACTICOUNT];
 int cactusFlip = 0;
+int activeCac = 0;
 ELEMENT elements[ECOUNT];
 int selectCount = 0;
+EITEM items[EITEMCOUNT];
+int happinessNeeded = 9;
+int nutrientNeeded = 9;
+int waterNeeded = 9;
 
 
 // Initializes game
@@ -17,6 +22,7 @@ void initGame() {
     // initialize game objects
     initCactus();
     initElements();
+    initEItems();
 
     // Load in colors
 
@@ -64,6 +70,21 @@ void initElements() {
 
 }
 
+// Helper to initiate element items
+void initEItems() {
+    
+    for (int i = 0; i < EITEMCOUNT; i++) {
+        items[i].height = 4;
+        items[i].width = 4;
+        items[i].row = 0;
+        items[i].col = 0;
+        items[i].vel = 2;
+        items[i].color = WHITEID;
+        items[i].active = 0;
+    }
+
+}
+
 
 // Updates game
 void updateGame() {
@@ -71,6 +92,16 @@ void updateGame() {
     cactusFlip++;
     updateCactus();
     updateSelect();
+
+    // If user presses a, drop an item
+    // aka initalize first non active item in pool items
+    if (BUTTON_PRESSED(BUTTON_A)) {
+        dropItems();
+    }
+
+    for (int i = 0; i < EITEMCOUNT; i++) {
+        updateItems(&items[i]);
+    }
 
 }
 
@@ -98,6 +129,56 @@ void updateSelect() {
 
 }
 
+// Helper that drops Items
+void dropItems() {
+
+    for (int i = 0; i < EITEMCOUNT; i++) {
+        
+        // Finding first non-active item
+        if (!(items[i].active)) {
+            
+            // orient
+            // replace with rand call
+            items[i].col = rand() % 150 + 10;
+            items[i].row = 0;
+            items[i].color = elements[selectCount].color;
+
+            // set picked item active
+            items[i].active = 1;
+
+            // leave loop
+            break;
+
+        }
+    }
+}
+
+// Helper to update items
+void updateItems(EITEM* e) {
+    if (e->active) {
+        e->row += e->vel;
+        
+        // if item collides with bottom of plant box, turn off
+        if (e->row + e->height >= PLANTBOXHEIGHT) {
+            e->active = 0;
+        }
+
+        // if item collides with active cactus, turn off
+        if (collision(cacti[activeCac].col, cacti[activeCac].row, cacti[activeCac].width, cacti[activeCac].height, e->col, e->row, e->width, e->height)) {
+            e->active = 0;
+
+            if (selectCount == 0 && happinessNeeded > 0) {
+                happinessNeeded -= 1;
+            } else if (selectCount == 1 && waterNeeded > 0) {
+                waterNeeded -= 1;
+            } else if (nutrientNeeded > 0) {
+                nutrientNeeded -= 1;
+            }
+
+        }
+    }
+}
+
 // Helper that 'animates' the cactus
 void flipCacti() {
 
@@ -106,6 +187,7 @@ void flipCacti() {
             cacti[i].active = 0;
         } else {
             cacti[i].active = 1;
+            activeCac = i;
         }
         cactusFlip = 0;
     }
@@ -126,6 +208,10 @@ void drawGame() {
 
     drawPlantBox();
     drawElements();
+
+    for (int i = 0; i < EITEMCOUNT; i++) {
+        drawItems(&items[i]);
+    }
 
 }
 
@@ -151,5 +237,12 @@ void drawPlantBox() {
 void drawElements() {
     for (int i = 0; i < ECOUNT; i++) {
         drawRect4(elements[i].col, elements[i].row, elements[i].width, elements[i].height, elements[i].color);
+    }
+}
+
+// Helper to draw items
+void drawItems(EITEM* e) {
+    if (e->active) {
+        drawRect4(e->col, e->row, e->width, e->height, e->color);
     }
 }

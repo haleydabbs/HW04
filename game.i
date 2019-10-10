@@ -880,28 +880,49 @@ typedef struct {
 } ELEMENT;
 
 
+typedef struct {
+    int row;
+    int col;
+    int height;
+    int width;
+    unsigned short color;
+    int vel;
+    int active;
+} EITEM;
+
+
+
 
 enum {BLACKID=(256-7), MAGENTAID, CYANID, GREENID, REDID, WHITEID, GRAYID};
 extern unsigned short colors[7];
-# 33 "game.h"
+# 46 "game.h"
 extern CACTUS cacti[2];
 int cactusFlip;
 int selectCount;
 extern ELEMENT elements[3];
+extern EITEM items[5];
+int activeCac;
+extern int happinessNeeded;
+extern int waterNeeded;
+extern int nutrientNeeded;
 
 
 void initGame();
 void initCactus();
 void initElements();
+void initEItems();
 void updateGame();
 void updateCactus();
 void updateSelect();
+void updateItems(EITEM* e);
 void flipCacti();
+void dropItems();
 void drawGame();
 void drawCacti(CACTUS* c);
 void drawPlantBox();
 void drawElements();
 void drawSelect();
+void drawItems(EITEM* e);
 # 4 "game.c" 2
 # 1 "cactus.h" 1
 # 21 "cactus.h"
@@ -921,8 +942,13 @@ extern const unsigned short cactus2Pal[256];
 
 CACTUS cacti[2];
 int cactusFlip = 0;
+int activeCac = 0;
 ELEMENT elements[3];
 int selectCount = 0;
+EITEM items[5];
+int happinessNeeded = 9;
+int nutrientNeeded = 9;
+int waterNeeded = 9;
 
 
 
@@ -931,6 +957,7 @@ void initGame() {
 
     initCactus();
     initElements();
+    initEItems();
 
 
 
@@ -979,12 +1006,37 @@ void initElements() {
 }
 
 
+void initEItems() {
+
+    for (int i = 0; i < 5; i++) {
+        items[i].height = 4;
+        items[i].width = 4;
+        items[i].row = 0;
+        items[i].col = 0;
+        items[i].vel = 2;
+        items[i].color = WHITEID;
+        items[i].active = 0;
+    }
+
+}
+
+
 
 void updateGame() {
 
     cactusFlip++;
     updateCactus();
     updateSelect();
+
+
+
+    if ((!(~(oldButtons)&((1<<0))) && (~buttons & ((1<<0))))) {
+        dropItems();
+    }
+
+    for (int i = 0; i < 5; i++) {
+        updateItems(&items[i]);
+    }
 
 }
 
@@ -1013,6 +1065,56 @@ void updateSelect() {
 }
 
 
+void dropItems() {
+
+    for (int i = 0; i < 5; i++) {
+
+
+        if (!(items[i].active)) {
+
+
+
+            items[i].col = rand() % 150 + 10;
+            items[i].row = 0;
+            items[i].color = elements[selectCount].color;
+
+
+            items[i].active = 1;
+
+
+            break;
+
+        }
+    }
+}
+
+
+void updateItems(EITEM* e) {
+    if (e->active) {
+        e->row += e->vel;
+
+
+        if (e->row + e->height >= 120) {
+            e->active = 0;
+        }
+
+
+        if (collision(cacti[activeCac].col, cacti[activeCac].row, cacti[activeCac].width, cacti[activeCac].height, e->col, e->row, e->width, e->height)) {
+            e->active = 0;
+
+            if (selectCount == 0 && happinessNeeded > 0) {
+                happinessNeeded -= 1;
+            } else if (selectCount == 1 && waterNeeded > 0) {
+                waterNeeded -= 1;
+            } else if (nutrientNeeded > 0) {
+                nutrientNeeded -= 1;
+            }
+
+        }
+    }
+}
+
+
 void flipCacti() {
 
     for (int i = 0; i < 2; i++) {
@@ -1020,6 +1122,7 @@ void flipCacti() {
             cacti[i].active = 0;
         } else {
             cacti[i].active = 1;
+            activeCac = i;
         }
         cactusFlip = 0;
     }
@@ -1040,6 +1143,10 @@ void drawGame() {
 
     drawPlantBox();
     drawElements();
+
+    for (int i = 0; i < 5; i++) {
+        drawItems(&items[i]);
+    }
 
 }
 
@@ -1065,5 +1172,12 @@ void drawPlantBox() {
 void drawElements() {
     for (int i = 0; i < 3; i++) {
         drawRect4(elements[i].col, elements[i].row, elements[i].width, elements[i].height, elements[i].color);
+    }
+}
+
+
+void drawItems(EITEM* e) {
+    if (e->active) {
+        drawRect4(e->col, e->row, e->width, e->height, e->color);
     }
 }

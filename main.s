@@ -28,20 +28,22 @@ goToStart:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	push	{r4, r5, r6, lr}
 	mov	r4, #0
+	ldr	ip, .L4
 	sub	sp, sp, #8
 	mov	r2, #83886080
-	ldr	r1, .L4
+	ldr	r1, .L4+4
 	mov	r3, #256
 	mov	r0, #3
-	ldr	r5, .L4+4
+	ldr	r5, .L4+8
+	str	r4, [ip]
 	mov	lr, pc
 	bx	r5
-	ldr	r5, .L4+8
-	ldr	r0, .L4+12
-	ldr	r3, .L4+16
+	ldr	r5, .L4+12
+	ldr	r0, .L4+16
+	ldr	r3, .L4+20
 	mov	lr, pc
 	bx	r3
-	ldr	r6, .L4+20
+	ldr	r6, .L4+24
 	mov	r3, #12
 	mov	r2, #88
 	mov	r1, #74
@@ -51,24 +53,24 @@ goToStart:
 	bx	r6
 	mov	r0, r5
 	mov	r2, #15
-	ldr	r1, .L4+24
-	ldr	r3, .L4+28
+	ldr	r1, .L4+28
+	ldr	r3, .L4+32
 	mov	lr, pc
 	bx	r3
 	mov	r2, r5
 	mov	r1, #76
 	mov	r0, #78
 	mov	r3, #39
-	ldr	r5, .L4+32
+	ldr	r5, .L4+36
 	mov	lr, pc
 	bx	r5
-	ldr	r3, .L4+36
-	mov	lr, pc
-	bx	r3
 	ldr	r3, .L4+40
 	mov	lr, pc
 	bx	r3
 	ldr	r3, .L4+44
+	mov	lr, pc
+	bx	r3
+	ldr	r3, .L4+48
 	str	r4, [r3]
 	add	sp, sp, #8
 	@ sp needed
@@ -77,6 +79,7 @@ goToStart:
 .L5:
 	.align	2
 .L4:
+	.word	seed
 	.word	cactiBGPal
 	.word	DMANow
 	.word	buffer
@@ -125,10 +128,14 @@ start:
 	mov	lr, pc
 	bx	r3
 	ldr	r3, .L16+4
-	ldrh	r3, [r3]
-	tst	r3, #8
+	ldr	r2, .L16+8
+	ldr	r0, [r3]
+	ldrh	r2, [r2]
+	add	r0, r0, #1
+	tst	r2, #8
+	str	r0, [r3]
 	beq	.L9
-	ldr	r3, .L16+8
+	ldr	r3, .L16+12
 	ldrh	r3, [r3]
 	tst	r3, #8
 	beq	.L15
@@ -136,11 +143,14 @@ start:
 	pop	{r4, lr}
 	bx	lr
 .L15:
-	ldr	r3, .L16+12
+	ldr	r3, .L16+16
+	mov	lr, pc
+	bx	r3
+	ldr	r3, .L16+20
 	mov	lr, pc
 	bx	r3
 	mov	r2, #1
-	ldr	r3, .L16+16
+	ldr	r3, .L16+24
 	pop	{r4, lr}
 	str	r2, [r3]
 	bx	lr
@@ -148,8 +158,10 @@ start:
 	.align	2
 .L16:
 	.word	waitForVBlank
+	.word	seed
 	.word	oldButtons
 	.word	buttons
+	.word	srand
 	.word	initGame
 	.word	state
 	.size	start, .-start
@@ -325,7 +337,13 @@ goToWin:
 	.section	.rodata.str1.4
 	.align	2
 .LC3:
-	.ascii	"Plant happiness pointz: %d\000"
+	.ascii	"H:%d\000"
+	.align	2
+.LC4:
+	.ascii	"T:%d\000"
+	.align	2
+.LC5:
+	.ascii	"N:%d\000"
 	.text
 	.align	2
 	.global	game
@@ -337,65 +355,95 @@ game:
 	@ Function supports interworking.
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, lr}
+	push	{r4, r5, r6, lr}
 	ldr	r3, .L49
 	mov	lr, pc
 	bx	r3
 	ldr	r3, .L49+4
 	mov	lr, pc
 	bx	r3
-	mov	r2, #0
-	ldr	r1, .L49+8
-	ldr	r3, .L49+12
-	ldr	r0, .L49+16
+	ldr	r3, .L49+8
+	ldr	r5, .L49+12
+	ldr	r2, [r3]
+	ldr	r1, .L49+16
+	ldr	r0, .L49+20
 	mov	lr, pc
-	bx	r3
-	ldr	r4, .L49+20
+	bx	r5
+	ldr	r4, .L49+24
+	mov	r3, #250
 	mov	r1, #135
 	mov	r0, #8
-	ldr	r2, .L49+16
-	mov	r3, #251
+	ldr	r2, .L49+20
 	mov	lr, pc
 	bx	r4
-	ldr	r3, .L49+24
-	mov	lr, pc
-	bx	r3
 	ldr	r3, .L49+28
+	ldr	r1, .L49+32
+	ldr	r2, [r3]
+	ldr	r0, .L49+20
+	mov	lr, pc
+	bx	r5
+	mov	r3, #251
+	mov	r1, #135
+	mov	r0, #40
+	ldr	r2, .L49+20
+	mov	lr, pc
+	bx	r4
+	ldr	r3, .L49+36
+	ldr	r1, .L49+40
+	ldr	r2, [r3]
+	ldr	r0, .L49+20
+	mov	lr, pc
+	bx	r5
+	mov	r1, #135
+	mov	r0, #72
+	ldr	r2, .L49+20
+	mov	r3, #252
+	mov	lr, pc
+	bx	r4
+	ldr	r3, .L49+44
 	mov	lr, pc
 	bx	r3
-	ldr	r3, .L49+32
+	ldr	r3, .L49+48
+	mov	lr, pc
+	bx	r3
+	ldr	r3, .L49+52
 	ldrh	r3, [r3]
 	tst	r3, #8
 	beq	.L38
-	ldr	r2, .L49+36
+	ldr	r2, .L49+56
 	ldrh	r2, [r2]
 	tst	r2, #8
 	beq	.L47
 .L38:
 	tst	r3, #2
 	beq	.L37
-	ldr	r3, .L49+36
+	ldr	r3, .L49+56
 	ldrh	r3, [r3]
 	tst	r3, #2
 	beq	.L48
 .L37:
-	pop	{r4, lr}
+	pop	{r4, r5, r6, lr}
 	bx	lr
 .L47:
-	pop	{r4, lr}
+	pop	{r4, r5, r6, lr}
 	b	goToPause
 .L48:
-	pop	{r4, lr}
+	pop	{r4, r5, r6, lr}
 	b	goToWin
 .L50:
 	.align	2
 .L49:
 	.word	updateGame
 	.word	drawGame
-	.word	.LC3
+	.word	happinessNeeded
 	.word	sprintf
+	.word	.LC3
 	.word	buffer
 	.word	drawString4
+	.word	waterNeeded
+	.word	.LC4
+	.word	nutrientNeeded
+	.word	.LC5
 	.word	waitForVBlank
 	.word	flipPage
 	.word	oldButtons
@@ -511,7 +559,9 @@ main:
 	.comm	buffer,41,4
 	.comm	oldButtons,2,2
 	.comm	buttons,2,2
+	.comm	seed,4,4
 	.comm	state,4,4
+	.comm	activeCac,4,4
 	.comm	selectCount,4,4
 	.comm	cactusFlip,4,4
 	.ident	"GCC: (devkitARM release 53) 9.1.0"

@@ -1246,28 +1246,49 @@ typedef struct {
 } ELEMENT;
 
 
+typedef struct {
+    int row;
+    int col;
+    int height;
+    int width;
+    unsigned short color;
+    int vel;
+    int active;
+} EITEM;
+
+
+
 
 enum {BLACKID=(256-7), MAGENTAID, CYANID, GREENID, REDID, WHITEID, GRAYID};
 extern unsigned short colors[7];
-# 33 "game.h"
+# 46 "game.h"
 extern CACTUS cacti[2];
 int cactusFlip;
 int selectCount;
 extern ELEMENT elements[3];
+extern EITEM items[5];
+int activeCac;
+extern int happinessNeeded;
+extern int waterNeeded;
+extern int nutrientNeeded;
 
 
 void initGame();
 void initCactus();
 void initElements();
+void initEItems();
 void updateGame();
 void updateCactus();
 void updateSelect();
+void updateItems(EITEM* e);
 void flipCacti();
+void dropItems();
 void drawGame();
 void drawCacti(CACTUS* c);
 void drawPlantBox();
 void drawElements();
 void drawSelect();
+void drawItems(EITEM* e);
 # 4 "main.c" 2
 # 1 "myLib.h" 1
 
@@ -1350,6 +1371,9 @@ enum {START, GAME, PAUSE, WIN};
 int state;
 
 
+int seed;
+
+
 unsigned short buttons;
 unsigned short oldButtons;
 
@@ -1398,6 +1422,10 @@ void initialize() {
 void goToStart() {
 
 
+    seed = 0;
+
+
+
     DMANow(3, cactiBGPal, ((unsigned short *)0x5000000), (256 | (0 << 21) | (0 << 23)));
     drawFullscreenImage4(cactiBGBitmap);
 
@@ -1406,8 +1434,11 @@ void goToStart() {
     sprintf(buffer, "Feed the plant");
     drawString4(78, 76, buffer, 39);
 
+
     waitForVBlank();
     flipPage();
+
+
     state = START;
 
 }
@@ -1416,10 +1447,12 @@ void goToStart() {
 void start() {
 
     waitForVBlank();
+    seed++;
 
 
     if ((!(~(oldButtons)&((1<<3))) && (~buttons & ((1<<3))))) {
 
+        srand(seed);
         initGame();
         goToGame();
 
@@ -1439,8 +1472,14 @@ void game() {
     updateGame();
     drawGame();
 
-    sprintf(buffer, "Plant happiness pointz: %d", 0);
-    drawString4(8, 135, buffer, CYANID);
+    sprintf(buffer, "H:%d", happinessNeeded);
+    drawString4(8, 135, buffer, MAGENTAID);
+
+    sprintf(buffer, "T:%d", waterNeeded);
+    drawString4(40, 135, buffer, CYANID);
+
+    sprintf(buffer, "N:%d", nutrientNeeded);
+    drawString4(72, 135, buffer, GREENID);
 
     waitForVBlank();
     flipPage();
