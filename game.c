@@ -6,14 +6,13 @@
 
 // Variables
 CACTUS cacti[CACTICOUNT];
-int cactusFlip = 0;
-int activeCac = 0;
+int cactusFlip;
+int addElement;
+int activeCac;
 ELEMENT elements[ECOUNT];
-int selectCount = 0;
+int selectCount;
 EITEM items[EITEMCOUNT];
-int happinessNeeded = 9;
-int nutrientNeeded = 9;
-int waterNeeded = 9;
+int itemsNeeded[3];
 
 
 // Initializes game
@@ -23,6 +22,15 @@ void initGame() {
     initCactus();
     initElements();
     initEItems();
+    
+    // initializing variables
+    selectCount = 0;
+    activeCac = 0;
+    addElement = 0;
+    cactusFlip = 0;
+    for (int i=0; i < 3; i++) {
+        itemsNeeded[i] = 5;
+    }
 
     // Load in colors
 
@@ -90,6 +98,7 @@ void initEItems() {
 void updateGame() {
 
     cactusFlip++;
+    addElement++;
     updateCactus();
     updateSelect();
 
@@ -102,6 +111,8 @@ void updateGame() {
     for (int i = 0; i < EITEMCOUNT; i++) {
         updateItems(&items[i]);
     }
+
+    incrementItem();
 
 }
 
@@ -166,17 +177,20 @@ void updateItems(EITEM* e) {
         // if item collides with active cactus, turn off
         if (collision(cacti[activeCac].col, cacti[activeCac].row, cacti[activeCac].width, cacti[activeCac].height, e->col, e->row, e->width, e->height)) {
             e->active = 0;
-
-            if (selectCount == 0 && happinessNeeded > 0) {
-                happinessNeeded -= 1;
-            } else if (selectCount == 1 && waterNeeded > 0) {
-                waterNeeded -= 1;
-            } else if (nutrientNeeded > 0) {
-                nutrientNeeded -= 1;
-            }
+            
+            itemsNeeded[selectCount] -= (itemsNeeded[selectCount] == 0 ? 0 : 1);
 
         }
     }
+}
+
+// Helper that increments random element
+void incrementItem() {
+    if (addElement == 100) {
+        itemsNeeded[rand() % 3] += 1;
+        addElement = 0;
+    }
+
 }
 
 // Helper that 'animates' the cactus

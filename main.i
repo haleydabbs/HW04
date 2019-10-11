@@ -1268,9 +1268,8 @@ int selectCount;
 extern ELEMENT elements[3];
 extern EITEM items[5];
 int activeCac;
-extern int happinessNeeded;
-extern int waterNeeded;
-extern int nutrientNeeded;
+int addElement;
+extern int itemsNeeded[3];
 
 
 void initGame();
@@ -1283,6 +1282,7 @@ void updateSelect();
 void updateItems(EITEM* e);
 void flipCacti();
 void dropItems();
+void incrementItem();
 void drawGame();
 void drawCacti(CACTUS* c);
 void drawPlantBox();
@@ -1351,6 +1351,20 @@ void drawString3(int col, int row, char *str, unsigned short color);
 void drawChar4(int col, int row, char ch, unsigned char colorIndex);
 void drawString4(int col, int row, char *str, unsigned char colorIndex);
 # 7 "main.c" 2
+# 1 "winBG.h" 1
+# 21 "winBG.h"
+extern const unsigned short winBGBitmap[19200];
+
+
+extern const unsigned short winBGPal[256];
+# 8 "main.c" 2
+# 1 "LoseBg.h" 1
+# 21 "LoseBg.h"
+extern const unsigned short LoseBgBitmap[19200];
+
+
+extern const unsigned short LoseBgPal[256];
+# 9 "main.c" 2
 
 
 
@@ -1365,9 +1379,11 @@ void goToPause();
 void pause();
 void goToWin();
 void win();
+void goToLose();
+void lose();
 
 
-enum {START, GAME, PAUSE, WIN};
+enum {START, GAME, PAUSE, WIN, LOSE};
 int state;
 
 
@@ -1404,6 +1420,9 @@ int main() {
                 break;
             case WIN:
                 win();
+                break;
+            case LOSE:
+                lose();
                 break;
         }
 
@@ -1472,13 +1491,13 @@ void game() {
     updateGame();
     drawGame();
 
-    sprintf(buffer, "H:%d", happinessNeeded);
+    sprintf(buffer, "H:%d", itemsNeeded[0]);
     drawString4(8, 135, buffer, MAGENTAID);
 
-    sprintf(buffer, "T:%d", waterNeeded);
+    sprintf(buffer, "T:%d", itemsNeeded[1]);
     drawString4(40, 135, buffer, CYANID);
 
-    sprintf(buffer, "N:%d", nutrientNeeded);
+    sprintf(buffer, "N:%d", itemsNeeded[2]);
     drawString4(72, 135, buffer, GREENID);
 
     waitForVBlank();
@@ -1487,8 +1506,10 @@ void game() {
 
     if ((!(~(oldButtons)&((1<<3))) && (~buttons & ((1<<3)))))
         goToPause();
-    else if ((!(~(oldButtons)&((1<<1))) && (~buttons & ((1<<1)))))
+    else if ((itemsNeeded[0] == 0) && (itemsNeeded[1] == 0) && (itemsNeeded[2] == 0))
         goToWin();
+    else if ((itemsNeeded[0] == 10) || (itemsNeeded[1] == 10) || (itemsNeeded[2] == 10))
+        goToLose();
 }
 
 
@@ -1521,11 +1542,15 @@ void pause() {
 
 void goToWin() {
 
-    fillScreen4(CYANID);
 
 
+    DMANow(3, winBGPal, ((unsigned short *)0x5000000), (256 | (0 << 21) | (0 << 23)));
+    drawFullscreenImage4(winBGBitmap);
+
+
+    drawRect4(76, 38, 88, 12, 0);
     sprintf(buffer, "You win!");
-    drawString4(98, 66, buffer, BLACKID);
+    drawString4(98, 40, buffer, 4);
 
     waitForVBlank();
     flipPage();
@@ -1542,4 +1567,35 @@ void win() {
 
     if ((!(~(oldButtons)&((1<<3))) && (~buttons & ((1<<3)))))
         goToStart();
+}
+
+
+void goToLose() {
+
+
+
+    DMANow(3, LoseBgPal, ((unsigned short *)0x5000000), (256 | (0 << 21) | (0 << 23)));
+    drawFullscreenImage4(LoseBgBitmap);
+
+
+    drawRect4(76, 38, 88, 12, 0);
+    sprintf(buffer, "You Lose.");
+    drawString4(93, 40, buffer, 5);
+
+    waitForVBlank();
+    flipPage();
+
+    state = LOSE;
+
+}
+
+
+void lose() {
+
+    waitForVBlank();
+
+
+    if ((!(~(oldButtons)&((1<<3))) && (~buttons & ((1<<3)))))
+        goToStart();
+
 }

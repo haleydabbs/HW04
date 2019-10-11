@@ -902,9 +902,8 @@ int selectCount;
 extern ELEMENT elements[3];
 extern EITEM items[5];
 int activeCac;
-extern int happinessNeeded;
-extern int waterNeeded;
-extern int nutrientNeeded;
+int addElement;
+extern int itemsNeeded[3];
 
 
 void initGame();
@@ -917,6 +916,7 @@ void updateSelect();
 void updateItems(EITEM* e);
 void flipCacti();
 void dropItems();
+void incrementItem();
 void drawGame();
 void drawCacti(CACTUS* c);
 void drawPlantBox();
@@ -941,14 +941,13 @@ extern const unsigned short cactus2Pal[256];
 
 
 CACTUS cacti[2];
-int cactusFlip = 0;
-int activeCac = 0;
+int cactusFlip;
+int addElement;
+int activeCac;
 ELEMENT elements[3];
-int selectCount = 0;
+int selectCount;
 EITEM items[5];
-int happinessNeeded = 9;
-int nutrientNeeded = 9;
-int waterNeeded = 9;
+int itemsNeeded[3];
 
 
 
@@ -958,6 +957,15 @@ void initGame() {
     initCactus();
     initElements();
     initEItems();
+
+
+    selectCount = 0;
+    activeCac = 0;
+    addElement = 0;
+    cactusFlip = 0;
+    for (int i=0; i < 3; i++) {
+        itemsNeeded[i] = 5;
+    }
 
 
 
@@ -1025,6 +1033,7 @@ void initEItems() {
 void updateGame() {
 
     cactusFlip++;
+    addElement++;
     updateCactus();
     updateSelect();
 
@@ -1037,6 +1046,8 @@ void updateGame() {
     for (int i = 0; i < 5; i++) {
         updateItems(&items[i]);
     }
+
+    incrementItem();
 
 }
 
@@ -1102,16 +1113,19 @@ void updateItems(EITEM* e) {
         if (collision(cacti[activeCac].col, cacti[activeCac].row, cacti[activeCac].width, cacti[activeCac].height, e->col, e->row, e->width, e->height)) {
             e->active = 0;
 
-            if (selectCount == 0 && happinessNeeded > 0) {
-                happinessNeeded -= 1;
-            } else if (selectCount == 1 && waterNeeded > 0) {
-                waterNeeded -= 1;
-            } else if (nutrientNeeded > 0) {
-                nutrientNeeded -= 1;
-            }
+            itemsNeeded[selectCount] -= (itemsNeeded[selectCount] == 0 ? 0 : 1);
 
         }
     }
+}
+
+
+void incrementItem() {
+    if (addElement == 100) {
+        itemsNeeded[rand() % 3] += 1;
+        addElement = 0;
+    }
+
 }
 
 

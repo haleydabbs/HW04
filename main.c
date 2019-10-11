@@ -4,6 +4,8 @@
 #include "myLib.h"
 #include "cactiBG.h"
 #include "text.h"
+#include "winBG.h"
+#include "LoseBg.h"
 
 
 // Prototypes
@@ -18,9 +20,11 @@ void goToPause();
 void pause();
 void goToWin();
 void win();
+void goToLose();
+void lose();
 
 // States
-enum {START, GAME, PAUSE, WIN};
+enum {START, GAME, PAUSE, WIN, LOSE};
 int state;
 
 // Variables
@@ -58,6 +62,9 @@ int main() {
             case WIN:
                 win();
                 break;
+            case LOSE:
+                lose();
+                break;
         }
 
     }
@@ -78,7 +85,7 @@ void goToStart() {
     seed = 0;
 
     // Setting up title screen
-    // Drawing title rect
+    // Drawing title pic
     DMANow(3, cactiBGPal, PALETTE, (256 | DMA_DESTINATION_INCREMENT | DMA_SOURCE_INCREMENT));
     drawFullscreenImage4(cactiBGBitmap);
 
@@ -125,13 +132,13 @@ void game() {
     updateGame();
     drawGame();
 
-    sprintf(buffer, "H:%d", happinessNeeded);
+    sprintf(buffer, "H:%d", itemsNeeded[0]);
     drawString4(8, 135, buffer, MAGENTAID);
 
-    sprintf(buffer, "T:%d", waterNeeded);
+    sprintf(buffer, "T:%d", itemsNeeded[1]);
     drawString4(40, 135, buffer, CYANID);
 
-    sprintf(buffer, "N:%d", nutrientNeeded);
+    sprintf(buffer, "N:%d", itemsNeeded[2]);
     drawString4(72, 135, buffer, GREENID);
    
     waitForVBlank();
@@ -140,8 +147,10 @@ void game() {
     // State transitions
     if (BUTTON_PRESSED(BUTTON_START))
         goToPause();
-    else if (BUTTON_PRESSED(BUTTON_B))
+    else if ((itemsNeeded[0] == 0) && (itemsNeeded[1] == 0) && (itemsNeeded[2] == 0))
         goToWin();
+    else if ((itemsNeeded[0] == 10) || (itemsNeeded[1] == 10) || (itemsNeeded[2] == 10))
+        goToLose();
 }
 
 // Sets up the pause state
@@ -174,11 +183,15 @@ void pause() {
 // Sets up the win state
 void goToWin() {
 
-    fillScreen4(CYANID);
+    // Setting up win screen
+    // Drawing win pic
+    DMANow(3, winBGPal, PALETTE, (256 | DMA_DESTINATION_INCREMENT | DMA_SOURCE_INCREMENT));
+    drawFullscreenImage4(winBGBitmap);
 
-    // width 48
+    // Drawing win text
+    drawRect4(76, 38, 88, 12, 0);
     sprintf(buffer, "You win!");
-    drawString4(98, 66, buffer, BLACKID);
+    drawString4(98, 40, buffer, 4);
 
     waitForVBlank();
     flipPage();
@@ -195,4 +208,35 @@ void win() {
     // State transitions
     if (BUTTON_PRESSED(BUTTON_START))
         goToStart();
+}
+
+// Sets up lose state
+void goToLose() {
+
+    // Setting up lose screen
+    // Drawing lose pic
+    DMANow(3, LoseBgPal, PALETTE, (256 | DMA_DESTINATION_INCREMENT | DMA_SOURCE_INCREMENT));
+    drawFullscreenImage4(LoseBgBitmap);
+
+    // Drawing lose text
+    drawRect4(76, 38, 88, 12, 0);
+    sprintf(buffer, "You Lose.");
+    drawString4(93, 40, buffer, 5);
+
+    waitForVBlank();
+    flipPage();
+
+    state = LOSE;
+
+}
+
+// Runs everys frame of lose state
+void lose() {
+
+    waitForVBlank();
+
+    // state transition
+    if (BUTTON_PRESSED(BUTTON_START))
+        goToStart();
+
 }

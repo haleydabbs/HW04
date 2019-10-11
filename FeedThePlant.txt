@@ -1,0 +1,20 @@
+Feed the plant
+
+In this game, you want to feed your plant different resources so
+that it grows a flower.
+
+-- Goal --
+
+There are three boxes on the right representing
+your resources, pink is for happiness, blue is for water, green is for
+fertilizer. There are corresponding numbers on the bottom of the
+screen representing how much of that resource the pant needs before it
+can make a flower (H is happiness, T is thirst, N is nutrients).
+These numbers go up periodically! Your goal is to make them reach 0,
+if any of them reach 10, your plant will wilt.
+
+-- Controls -- 
+
+Start and pause the game by pressing start.
+You can toggle the selected resource by pressing the up and down arrows.
+Drop the resources by pressing A.

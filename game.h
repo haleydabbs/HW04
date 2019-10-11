@@ -49,9 +49,8 @@ int selectCount;
 extern ELEMENT elements[ECOUNT];
 extern EITEM items[EITEMCOUNT];
 int activeCac;
-extern int happinessNeeded;
-extern int waterNeeded;
-extern int nutrientNeeded;
+int addElement;
+extern int itemsNeeded[3];
 
 // Prototypes
 void initGame();
@@ -64,6 +63,7 @@ void updateSelect();
 void updateItems(EITEM* e);
 void flipCacti();
 void dropItems();
+void incrementItem();
 void drawGame();
 void drawCacti(CACTUS* c);
 void drawPlantBox();
